@@ -1,1 +1,165 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class ContactBook:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Contact Book")
+        self.root.geometry("600x500")
+
+        self.contacts = []  # List to store contact information
+
+        # Create the input fields for the contact details
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self.name_entry = tk.Entry(self.root, width=40)
+        self.name_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        self.phone_label = tk.Label(self.root, text="Phone Number:")
+        self.phone_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        self.phone_entry = tk.Entry(self.root, width=40)
+        self.phone_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        self.email_label = tk.Label(self.root, text="Email:")
+        self.email_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        self.email_entry = tk.Entry(self.root, width=40)
+        self.email_entry.grid(row=2, column=1, padx=10, pady=10)
+
+        self.address_label = tk.Label(self.root, text="Address:")
+        self.address_label.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+        self.address_entry = tk.Entry(self.root, width=40)
+        self.address_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # Buttons for actions
+        self.add_button = tk.Button(self.root, text="Add Contact", width=20, command=self.add_contact)
+        self.add_button.grid(row=4, column=0, padx=10, pady=20)
+
+        self.update_button = tk.Button(self.root, text="Update Contact", width=20, command=self.update_contact)
+        self.update_button.grid(row=4, column=1, padx=10, pady=20)
+
+        self.delete_button = tk.Button(self.root, text="Delete Contact", width=20, command=self.delete_contact)
+        self.delete_button.grid(row=5, column=0, padx=10, pady=20)
+
+        self.view_button = tk.Button(self.root, text="View Contacts", width=20, command=self.view_contacts)
+        self.view_button.grid(row=5, column=1, padx=10, pady=20)
+
+        self.search_button = tk.Button(self.root, text="Search Contact", width=20, command=self.search_contact)
+        self.search_button.grid(row=6, column=0, padx=10, pady=20)
+
+        self.clear_button = tk.Button(self.root, text="Clear Fields", width=20, command=self.clear_fields)
+        self.clear_button.grid(row=6, column=1, padx=10, pady=20)
+
+    def add_contact(self):
+        """Add a new contact to the contact list."""
+        name = self.name_entry.get()
+        phone = self.phone_entry.get()
+        email = self.email_entry.get()
+        address = self.address_entry.get()
+
+        # Check if all fields are filled
+        if not name or not phone or not email or not address:
+            messagebox.showwarning("Input Error", "All fields must be filled.")
+            return
+
+        contact = {"name": name, "phone": phone, "email": email, "address": address}
+        self.contacts.append(contact)
+        messagebox.showinfo("Success", f"Contact for {name} added successfully.")
+        self.clear_fields()
+
+    def update_contact(self):
+        """Update an existing contact's information."""
+        name = self.name_entry.get()
+        phone = self.phone_entry.get()
+
+        if not name and not phone:
+            messagebox.showwarning("Input Error", "Please enter the name or phone number of the contact to update.")
+            return
+
+        contact = self.search_contact_in_list(name, phone)
+        if contact:
+            # Update fields
+            contact["name"] = self.name_entry.get() if self.name_entry.get() else contact["name"]
+            contact["phone"] = self.phone_entry.get() if self.phone_entry.get() else contact["phone"]
+            contact["email"] = self.email_entry.get() if self.email_entry.get() else contact["email"]
+            contact["address"] = self.address_entry.get() if self.address_entry.get() else contact["address"]
+            messagebox.showinfo("Success", f"Contact for {contact['name']} updated successfully.")
+            self.clear_fields()
+        else:
+            messagebox.showwarning("Not Found", "Contact not found. Please check the details.")
+
+    def delete_contact(self):
+        """Delete a contact from the list."""
+        name = self.name_entry.get()
+        phone = self.phone_entry.get()
+
+        if not name and not phone:
+            messagebox.showwarning("Input Error", "Please enter the name or phone number of the contact to delete.")
+            return
+
+        contact = self.search_contact_in_list(name, phone)
+        if contact:
+            self.contacts.remove(contact)
+            messagebox.showinfo("Success", f"Contact for {contact['name']} deleted successfully.")
+            self.clear_fields()
+        else:
+            messagebox.showwarning("Not Found", "Contact not found. Please check the details.")
+
+    def view_contacts(self):
+        """View all contacts."""
+        if not self.contacts:
+            messagebox.showwarning("No Contacts", "No contacts found.")
+            return
+
+        contacts_info = "\n".join([f"{c['name']} - {c['phone']}" for c in self.contacts])
+        messagebox.showinfo("Contacts List", contacts_info)
+
+    def search_contact(self):
+        """Search for a contact by name or phone number."""
+        name = self.name_entry.get()
+        phone = self.phone_entry.get()
+
+        if not name and not phone:
+            messagebox.showwarning("Input Error", "Please enter the name or phone number to search.")
+            return
+
+        contact = self.search_contact_in_list(name, phone)
+        if contact:
+            self.display_contact(contact)
+        else:
+            messagebox.showwarning("Not Found", "Contact not found.")
+
+    def search_contact_in_list(self, name, phone):
+        """Helper method to search for a contact in the list."""
+        for contact in self.contacts:
+            if contact["name"].lower() == name.lower() or contact["phone"] == phone:
+                return contact
+        return None
+
+    def display_contact(self, contact):
+        """Display the contact details."""
+        self.name_entry.delete(0, tk.END)
+        self.phone_entry.delete(0, tk.END)
+        self.email_entry.delete(0, tk.END)
+        self.address_entry.delete(0, tk.END)
+
+        self.name_entry.insert(0, contact["name"])
+        self.phone_entry.insert(0, contact["phone"])
+        self.email_entry.insert(0, contact["email"])
+        self.address_entry.insert(0, contact["address"])
+
+    def clear_fields(self):
+        """Clear the input fields."""
+        self.name_entry.delete(0, tk.END)
+        self.phone_entry.delete(0, tk.END)
+        self.email_entry.delete(0, tk.END)
+        self.address_entry.delete(0, tk.END)
+
+
+def main():
+    root = tk.Tk()
+    app = ContactBook(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
 
